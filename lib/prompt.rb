@@ -61,10 +61,10 @@ class Prompt
     end
   end
 
-  def find(*args)
-    puts "the the number of attendees in csv file: #{@data.length} "
+  def find(args)
+    #puts "the the number of attendees in csv file: #{@data.length} "
     @queue = []
-    array = args[0].split
+    array = args.split
     # puts "attribute: #{array[0]}"
     # puts "criteria: #{array[1]}"
     search(array[0], array[1])
@@ -113,9 +113,11 @@ class Prompt
       elsif args[0] == "clear"
         # call queue_clear
         queue_clear
-      elsif args[0] == "print"
+      elsif args[0] == "print" && args[1] != "by"
         # call queue_print
         queue_print
+      elsif args[0] == "print" && args[1] == "by"
+        sort_queue(args[2])
       end
     else
       puts "Sorry that command is not supported"
@@ -152,6 +154,15 @@ class Prompt
     # puts @queue.inspect
     # puts ""
   end
+
+  def sort_queue(attribute)
+    puts "in sort_queue method"
+    @queue = @queue.sort_by do |person|
+      person[attribute].downcase
+    end
+    queue_print
+  end
+
 
   def queue_count
     puts "There are #{@queue.size} records currently in the queue"
