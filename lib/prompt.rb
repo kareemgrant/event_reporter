@@ -118,6 +118,8 @@ class Prompt
         queue_print
       elsif args[0] == "print" && args[1] == "by"
         sort_queue(args[2])
+      elsif args[0] == "save" && args[1] == "to"
+        queue_save(args[2])
       end
     else
       puts "Sorry that command is not supported"
@@ -127,6 +129,8 @@ class Prompt
 
 
   private 
+
+
 
   def search(attribute, criteria)
     #puts "In search method data is equal to #{@data}" 
@@ -177,6 +181,39 @@ class Prompt
   def queue_print
     print_results_header
     print_queue(@data)
+  end
+
+  def queue_save(filename)
+    # save data to external file
+    row_array = []
+   @queue.each do |person| 
+      row_array.push(generate_row(person))
+    end
+    puts "in queue_save"
+    puts row_array.inspect
+    write_to_csv(row_array, filename)
+  end
+
+  def write_to_csv(row_array, filename)
+    header_row = ["First_name", "Last_name", "Email_address", "Homephone", "Street", "City", "State", "Zipcode"]
+    puts "in write_to_csv to method"
+    Dir.mkdir("results") unless Dir.exists?("results") #create output dir unless it already exists
+    CSV.open("results/#{filename}", "w") do |csv|
+      csv << header_row
+      row_array.each do |record|
+        csv.add_row(record)
+      end
+    end
+  end
+
+  def generate_row(person)
+    puts "in generate_row method with #{person["first_name"]}"
+    person_row = []
+    person.each do |k, v|
+      person_row.push(v)
+    end
+    #person_row.inspect
+    person_row
   end
 
 
