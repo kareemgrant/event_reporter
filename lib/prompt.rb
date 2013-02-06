@@ -13,7 +13,7 @@ class Prompt
                  "queue <attribute> <criteria>" => "Load the queue with all records matching the criteria for the given attribute",
                  "quit" => "Quit the EventReporter program"}
 
-  FIELDS = ["First_name", "Last_name", "Email_address", "Homephone", "Street", "City", "State", "Zipcode"]
+  FIELDS = {"First_name" => 10 , "Last_name" => 9, "Email_address" => 13, "Homephone" => 9, "Street" => 6, "City" => 4, "State" => 5, "Zipcode" => 10}
 
   GUTTER = 5
 
@@ -146,7 +146,8 @@ class Prompt
     #puts "Longest last name is #{get_longest_value}"
     #get_longest_value("last_name")
     field_widths = get_column_widths(FIELDS)
-    puts field_widths.inspect
+    print_results_header(field_widths)
+    #puts field_widths.inspect
     count = 0
     q_size = @queue.size
     @queue.each do |person|
@@ -163,6 +164,17 @@ class Prompt
             person[:street].ljust(field_widths["street"] + GUTTER) + person[:homephone].ljust(field_widths["homephone"]) + "\n" 
       count += 1
     end
+  end
+
+  def print_results_header(field_widths)
+    #puts "print_results_header"
+    puts field_widths.inspect
+    puts ""
+    border_line
+    print "LAST NAME".ljust(field_widths["last_name"] + GUTTER) + "FIRST NAME".ljust(field_widths["first_name"] + GUTTER) + "EMAIL".ljust(field_widths["email_address"] + GUTTER) + 
+          "ZIPCODE".ljust(field_widths["zipcode"] + GUTTER) + "CITY".ljust(field_widths["city"] + GUTTER) + "STATE".ljust(field_widths["state"] + GUTTER) + "ADDRESS".ljust(field_widths["street"] + GUTTER) + 
+          "PHONE".ljust(field_widths["homephone"]) + "\n"
+    border_line
   end
 
   def sort_queue(attribute)
@@ -185,7 +197,7 @@ class Prompt
   end
 
   def queue_print
-    print_results_header
+    #print_results_header
     print_queue
   end
 
@@ -212,18 +224,8 @@ class Prompt
     end
   end
 
-  # def generate_row(person)
-  #   puts person.inspect
-  #   person_row = []
-  #   person.each do |k, v|
-  #     person_row.push(v)
-  #   end
-  #   person_row
-  # end
-
-
   def border_line
-    puts "-"*160
+    puts "-"*180
   end
 
   def header
@@ -242,23 +244,28 @@ class Prompt
     border_line
   end
 
-  def print_results_header
-    puts ""
-    border_line
-    print "LAST NAME".ljust(25) + "FIRST NAME".ljust(15) + "EMAIL".ljust(30) + "ZIPCODE".ljust(10) + "CITY".ljust(20) + "STATE".ljust(10) + "ADDRESS".ljust(35) + "PHONE".ljust(10) + "\n"
-    border_line
-  end
-
   def calc_column_widths 
 
   end
 
   def get_column_widths(fields)
     fields_widths_hash = {}
-    fields.each do |field|
-      fields_widths_hash[field.downcase] = get_longest_value(field.downcase)
+    fields.each do |name, width|
+      # puts name
+      # puts width
+      header_width = get_header_width(name.downcase)
+      # puts "header width: #{header_width}"
+      col_width = get_longest_value(name.downcase)
+      # puts "col width: #{col_width}"
+      fields_widths_hash[name.downcase] = col_width > header_width ? col_width : header_width
     end
     fields_widths_hash
+  end
+
+  def get_header_width(field)
+    # puts "In get_header_width method"
+    # puts "#{field} was passed in"
+    FIELDS[field.capitalize]
   end
 
   def get_longest_value(field) 
