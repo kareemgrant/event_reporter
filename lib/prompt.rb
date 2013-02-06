@@ -13,6 +13,10 @@ class Prompt
                  "queue <attribute> <criteria>" => "Load the queue with all records matching the criteria for the given attribute",
                  "quit" => "Quit the EventReporter program"}
 
+  FIELDS = ["First_name", "Last_name", "Email_address", "Homephone", "Street", "City", "State", "Zipcode"]
+
+  GUTTER = 5
+
   def initialize(greeting)
     @greeting = greeting
     @data = []
@@ -26,6 +30,8 @@ class Prompt
       printf "Enter command:"
 
       input = gets.chomp
+      input = input.downcase
+
       parts = input.split(" ")
 
       command = parts[0]
@@ -34,6 +40,8 @@ class Prompt
       process_command(command, options)
     end
   end
+
+  private 
 
   def load_file(filename)
     @data = EventAttendee.new(filename).get_attendees
@@ -67,14 +75,14 @@ class Prompt
     array = args.split
     # puts "attribute: #{array[0]}"
     # puts "criteria: #{array[1]}"
-    search(array[0], array[1])
+    search(array[0], array[1..-1].join(" "))
   end
 
   def process_command(command, options)
 
     if command == 'load'
       if options[0].to_s == ""
-        load_file("event_attendees.csv")
+        load_file("full_event_attendees.csv")
         puts "no option was specified so the event_attendees.csv file was loaded by default"
       else
         load_file(options[0..-1].join)
@@ -121,48 +129,46 @@ class Prompt
       elsif args[0] == "save" && args[1] == "to"
         queue_save(args[2])
       end
+    elsif command == "quit"
+      puts "Quiting the program"
     else
       puts "Sorry that command is not supported"
     end
   end
 
-
-
-  private 
-
-
-
   def search(attribute, criteria)
     #puts "In search method data is equal to #{@data}" 
-
-    # puts "displaying attribute and criteria in search"
-    # puts attribute
-    # puts criteria
-
-    @queue = @data.select {|person| person[attribute].downcase == criteria.downcase }
-    # puts "Output of the queue in search method"
-    # puts @queue.inspect
-
-    # puts "#{@queue.length} records found"
-    # print_results_header
-    # print_queue(@queue)
+    @queue = @data.select {|person| person[attribute.to_sym].downcase == criteria.downcase }
+    puts "#{@queue.size} records found"
   end
 
-  def print_queue(queue)
+  def print_queue
+    #puts "Longest last name is #{get_longest_value}"
+    #get_longest_value("last_name")
+    field_widths = get_column_widths(FIELDS)
+    puts field_widths.inspect
+    count = 0
+    q_size = @queue.size
     @queue.each do |person|
-      print person["last_name"].ljust(25) + person["first_name"].ljust(15) + person["email_address"].ljust(30) + person["zipcode"].ljust(10) + person["city"].ljust(20) + person["state"].ljust(10) + person["street"].ljust(35) + person["homephone"].ljust(15) + "\n" 
+      if (count != 0) && (count % 10 == 0)
+        puts "Displaying records #{count - 10} - #{count} of #{q_size}"
+        input = ""
+        while input != "\n" #|| input != "\n"
+          puts "press space bar or the enter key to show the next set of records"
+          input = gets
+        end
+      end
+      print person[:last_name].ljust(field_widths["last_name"] + GUTTER) + person[:first_name].ljust(field_widths["first_name"] + GUTTER) + person[:email_address].ljust(field_widths["email_address"] + GUTTER) + 
+            person[:zipcode].ljust(field_widths["zipcode"] + GUTTER) + person[:city].ljust(field_widths["city"] + GUTTER) + person[:state].ljust(field_widths["state"] + GUTTER) + 
+            person[:street].ljust(field_widths["street"] + GUTTER) + person[:homephone].ljust(field_widths["homephone"]) + "\n" 
+      count += 1
     end
-
-    # puts ""
-    # puts "the results have been printed here is the current queue:"
-    # puts @queue.inspect
-    # puts ""
   end
 
   def sort_queue(attribute)
     puts "in sort_queue method"
     @queue = @queue.sort_by do |person|
-      person[attribute].downcase
+      person[attribute.to_sym].downcase
     end
     queue_print
   end
@@ -180,41 +186,40 @@ class Prompt
 
   def queue_print
     print_results_header
-    print_queue(@data)
+    print_queue
   end
+
+  # def queue_save(filename)
+  #   # save data to external file
+  #   row_array = []
+  #  @queue.each do |person| 
+  #     row_array.push(generate_row(person))
+  #   end
+  #   puts "in queue_save"
+  #   puts row_array.inspect
+  #   write_to_csv(row_array, filename)
+  # end
 
   def queue_save(filename)
-    # save data to external file
-    row_array = []
-   @queue.each do |person| 
-      row_array.push(generate_row(person))
-    end
-    puts "in queue_save"
-    puts row_array.inspect
-    write_to_csv(row_array, filename)
-  end
-
-  def write_to_csv(row_array, filename)
     header_row = ["First_name", "Last_name", "Email_address", "Homephone", "Street", "City", "State", "Zipcode"]
     puts "in write_to_csv to method"
-    Dir.mkdir("results") unless Dir.exists?("results") #create output dir unless it already exists
-    CSV.open("results/#{filename}", "w") do |csv|
+    Dir.mkdir("data") unless Dir.exists?("data") #create output dir unless it already exists
+    CSV.open("data/#{filename}", "w") do |csv|
       csv << header_row
-      row_array.each do |record|
-        csv.add_row(record)
+      @queue.each do |person|
+        csv << [person[:first_name], person[:last_name], person[:email_address], person[:zipcode], person[:city], person[:state], person[:street], person[:homephone]]
       end
     end
   end
 
-  def generate_row(person)
-    puts "in generate_row method with #{person["first_name"]}"
-    person_row = []
-    person.each do |k, v|
-      person_row.push(v)
-    end
-    #person_row.inspect
-    person_row
-  end
+  # def generate_row(person)
+  #   puts person.inspect
+  #   person_row = []
+  #   person.each do |k, v|
+  #     person_row.push(v)
+  #   end
+  #   person_row
+  # end
 
 
   def border_line
@@ -242,6 +247,28 @@ class Prompt
     border_line
     print "LAST NAME".ljust(25) + "FIRST NAME".ljust(15) + "EMAIL".ljust(30) + "ZIPCODE".ljust(10) + "CITY".ljust(20) + "STATE".ljust(10) + "ADDRESS".ljust(35) + "PHONE".ljust(10) + "\n"
     border_line
+  end
+
+  def calc_column_widths 
+
+  end
+
+  def get_column_widths(fields)
+    fields_widths_hash = {}
+    fields.each do |field|
+      fields_widths_hash[field.downcase] = get_longest_value(field.downcase)
+    end
+    fields_widths_hash
+  end
+
+  def get_longest_value(field) 
+    array = []
+    @queue.each do |person|
+      array << person[field].length 
+    end
+    array.max
+    # puts @queue[0][:last_name]
+    # puts @queue[0][:last_name].length
   end
 
 

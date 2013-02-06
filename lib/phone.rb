@@ -19,6 +19,6 @@ class Phone
       @phone = "xxxxxxxxxx"
     end
 
-    return @phone
+    #return @phone
   end
 end
