@@ -1,7 +1,9 @@
+$:.unshift("lib")
+
 require 'csv'
-require './lib/phone'
-require './lib/zipcode'
-require './lib/event_attendee'
-require './lib/prompt'
+require 'phone'
+require 'zipcode'
+require 'event_attendee'
+require 'prompt'
 
 Prompt.new("Welcome to EventReporter").run
