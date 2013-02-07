@@ -64,10 +64,29 @@ class Prompt
     end
   end
 
-  def find(args)
+  def find(*args)
     @queue = []
-    array = args.split
-    search(array[0], array[1..-1].join(" "))
+    options = args.join(" ").split
+    # logic that evaluates the array and searches for the "and" string
+    if options.include?("and")
+      multi = true
+      and_cursor = options.index("and")
+      first_args = options[0..(and_cursor-1)]
+      second_args = options[(and_cursor+1)..-1]
+
+      attribute1 = first_args[0]
+      attribute2 = second_args[0]
+      criteria1 = first_args[1..-1].join(" ")
+      criteria2 = second_args[1..-1].join(" ")
+      # now send data to the search method
+      search(multi,attribute1, criteria1, attribute2, criteria2)
+    else
+      # run multiple regular search
+      multi = false
+      attribute1 = options[0]
+      criteria1 = options[1..-1].join(" ")
+      search(multi, options[0], options[1..-1].join(" "))
+    end
   end
 
   def process_command(command, options)
@@ -97,7 +116,7 @@ class Prompt
       if args.empty?
         puts "Cannot call find without an attribute and criteria"
       else
-        args = options[0..-1].join(" ")
+        args = options[0..-1].join(" ") #pass args as a string
         find(args)
       end
 
@@ -123,12 +142,32 @@ class Prompt
     end
   end
 
-  def search(attribute, criteria)
-    if @queue.empty?
-      @queue = @data.select {|person| person[attribute.to_sym].downcase == criteria.downcase }
+  def search(multi, *args)
+    puts "in search method"
+    puts args.inspect
+    if multi
+      # true 
+      attribute1 = args[0]
+      criteria1 = args[1]
+      attribute2 = args[2]
+      criteria2 = args[3]
+
+      puts "conducting first search"
+      @queue = @data.select {|person| person[attribute1.to_sym].downcase == criteria1.downcase }
+
+      puts "conducting second search on the existing queue results set"
+      @queue = @queue.select {|person| person[attribute2.to_sym].downcase == criteria2.downcase }
       puts "#{@queue.size} records found"
+
     else
-      puts("Your queue empty, there are no results to print")
+      attribute = args[0]
+      criteria = args[1]
+      #if @queue.empty?
+        @queue = @data.select {|person| person[attribute.to_sym].downcase == criteria.downcase }
+        puts "#{@queue.size} records found"
+     # else
+    #    puts("Your queue empty, there are no results to print")
+    #  end
     end
   end
 
