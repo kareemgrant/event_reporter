@@ -10,7 +10,7 @@ class Prompt
                  "queue print" => "Print out a tab-delimited data table with a header row",
                  "queue print by <attribute>" => "Print the data table sorted by the specified attribute like zipcode",
                  "queue save to <filename.csv>" => "Export the current queue to the specified filename as a CSV",
-                 "queue <attribute> <criteria>" => "Load the queue with all records matching the criteria for the given attribute",
+                 "find <attribute> <criteria>" => "Load the queue with all records matching the criteria for the given attribute",
                  "quit" => "Quit the EventReporter program"}
 
   FIELDS = {"First_name" => 10 , "Last_name" => 9, "Email_address" => 13, "Homephone" => 9, "Street" => 6, "City" => 4, "State" => 5, "Zipcode" => 10}
@@ -69,6 +69,10 @@ class Prompt
       args = options[0..-1]
       if args.empty?
         error_message("no args")
+      elsif (attribute_exist?(options[0]) == false) && options[1].to_s != ""
+        error_message("no attribute")
+      elsif options[1].to_s == ""
+        error_message("no criteria")
       else
         args = options[0..-1].join(" ") #pass args as a string
         find(args)
@@ -93,8 +97,13 @@ class Prompt
       end
     elsif command == "quit"
       puts "Quiting the program"
+    elsif command == "add"
+      # call 
+    elsif command == "subtract"
+      # call subtract method
     else
-      puts "Sorry that command is not supported"
+      #puts "Sorry that command is not supported"
+      error_message("no command")
     end
   end
 
@@ -105,7 +114,7 @@ class Prompt
   end
 
   def find(*args)
-    error_message("no data") if @data.empty?
+    #error_message("no data") if @data.empty?
     @queue = []
     options = args.join(" ").split
     # logic that evaluates the array and searches for the "and" string
@@ -132,8 +141,8 @@ class Prompt
 
   def search(multi, *args)
 
-    puts "in search method"
-    puts args.inspect
+    #puts "in search method"
+    #puts args.inspect
     if multi
       # true 
       attribute1 = args[0]
@@ -279,6 +288,10 @@ class Prompt
     border_line
   end
 
+  def attribute_exist?(attribute)
+    FIELDS.has_key?(attribute.capitalize)
+  end
+
   def error_message(e)
     case e
     when "queue empty" then puts "Command cannot be completed because the queue is empty"
@@ -286,6 +299,9 @@ class Prompt
     when "no args" then puts "The command you are using is requires additional options, type HELP for more details"
     when "no file" then puts "The file you are attempting to Load does not exist"
     when "no overwrite" then puts "You are not authorized to overwrite this file"
+    when "no command" then puts "The command you entered does not exist, please type HELP for more details"
+    when "no attribute" then puts "The field that you are attempting to query does not exist, you can only conduct a query on a valid field"
+    when "no criteria" then puts "Your FIND command is missing the required criteria option, type HELP for more details"
     else
       puts "The Command entered could not be found, please check your input again"
     end
