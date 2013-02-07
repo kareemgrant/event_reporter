@@ -43,28 +43,69 @@ class Prompt
 
   private 
 
-  def load_file(filename)
-    @data = EventAttendee.new(filename).get_attendees
-    puts "There were #{@data.length} records retrieved"
-    puts "Confirmation: #{filename} was successfully loaded"
-  end
+  def process_command(command, options)
 
-  def help(*option)
-    if option.empty?
-      print_commands(COMMANDS)
-    else
-      command = option[0..-1].join(" ")
-      if COMMANDS.include?(command)
-        new_hash = Hash.new
-        new_hash[command] = COMMANDS[command]
-        print_commands(new_hash)
+    if command == 'load'
+      if options[0].to_s == ""
+        load_file("event_attendees.csv")
+        puts "no filename was specified so the event_attendees.csv file was loaded by default"
       else
-        puts "In help method: Sorry that command is not supported"
+        filename = options[0..-1].join
+        File.exists?("data/#{filename}") ? load_file(filename) : error_message("no file")
       end
+
+    elsif command == 'help'
+      args = options[0..-1]
+      if args.empty?
+        #puts "call help method without arg"
+        help
+      else
+        #puts "call help method with arg"
+        args.join(" ")
+        help(args)
+      end
+
+    elsif command == 'find'
+      args = options[0..-1]
+      if args.empty?
+        error_message("no args")
+      else
+        args = options[0..-1].join(" ") #pass args as a string
+        find(args)
+      end
+
+    elsif command == 'queue'
+      args = options[0..-1]
+      if args.empty?
+        error_message("no args")
+      elsif args[0] == "count"
+        queue_count
+      elsif args[0] == "clear"
+        queue_clear
+      elsif args[0] == "print" && args[1] != "by"
+        @queue.empty? ? error_message("queue empty") : queue_print
+      elsif args[0] == "print" && args[1] == "by"
+        @queue.empty? ? error_message("queue empty") : sort_queue(args[2])
+      elsif args[0] == "save" && args[1] == "to"
+        args[2].downcase == "event_attendees.csv" ? error_message("no overwrite") : queue_save(args[2])
+      else
+        error_message("")
+      end
+    elsif command == "quit"
+      puts "Quiting the program"
+    else
+      puts "Sorry that command is not supported"
     end
   end
 
+  def load_file(filename)
+    @data = EventAttendee.new(filename).get_attendees
+    puts "Confirmation: #{filename} was successfully loaded"
+    puts "There were #{@data.length} records retrieved"
+  end
+
   def find(*args)
+    error_message("no data") if @data.empty?
     @queue = []
     options = args.join(" ").split
     # logic that evaluates the array and searches for the "and" string
@@ -89,60 +130,8 @@ class Prompt
     end
   end
 
-  def process_command(command, options)
-
-    if command == 'load'
-      if options[0].to_s == ""
-        load_file("full_event_attendees.csv")
-        puts "no option was specified so the event_attendees.csv file was loaded by default"
-      else
-        load_file(options[0..-1].join)
-        puts "loaded the following file: #{options[0]}"
-      end
-
-    elsif command == 'help'
-      args = options[0..-1]
-      if args.empty?
-        puts "call help method without arg"
-        help
-      else
-        puts "call help method with arg"
-        args.join(" ")
-        help(args)
-      end
-
-    elsif command == 'find'
-      args = options[0..-1]
-      if args.empty?
-        puts "Cannot call find without an attribute and criteria"
-      else
-        args = options[0..-1].join(" ") #pass args as a string
-        find(args)
-      end
-
-    elsif command == 'queue'
-      args = options[0..-1]
-      if args.empty?
-        puts "You cannont call queue without specifying additional options"
-      elsif args[0] == "count"
-        queue_count
-      elsif args[0] == "clear"
-        queue_clear
-      elsif args[0] == "print" && args[1] != "by"
-        queue_print
-      elsif args[0] == "print" && args[1] == "by"
-        sort_queue(args[2])
-      elsif args[0] == "save" && args[1] == "to"
-        queue_save(args[2])
-      end
-    elsif command == "quit"
-      puts "Quiting the program"
-    else
-      puts "Sorry that command is not supported"
-    end
-  end
-
   def search(multi, *args)
+
     puts "in search method"
     puts args.inspect
     if multi
@@ -162,12 +151,23 @@ class Prompt
     else
       attribute = args[0]
       criteria = args[1]
-      #if @queue.empty?
-        @queue = @data.select {|person| person[attribute.to_sym].downcase == criteria.downcase }
-        puts "#{@queue.size} records found"
-     # else
-    #    puts("Your queue empty, there are no results to print")
-    #  end
+      @queue = @data.select {|person| person[attribute].downcase == criteria.downcase }
+      puts "#{@queue.size} records found"
+    end
+  end
+
+  def help(*option)
+    if option.empty?
+      print_commands(COMMANDS)
+    else
+      command = option[0..-1].join(" ")
+      if COMMANDS.include?(command)
+        new_hash = Hash.new
+        new_hash[command] = COMMANDS[command]
+        print_commands(new_hash)
+      else
+        puts "In help method: Sorry that command is not supported"
+      end
     end
   end
 
@@ -181,13 +181,13 @@ class Prompt
   end
 
   def queue_save(filename)
-    header_row = ["First_name", "Last_name", "Email_address", "Zipcode", "Street", "City", "State",  "Homephone"]
+    header_row = ["Last_name", "First_name", "Email_address", "Zipcode", "Street", "City", "State", "Homephone"]
     puts "in write_to_csv to method"
     Dir.mkdir("data") unless Dir.exists?("data") #create output dir unless it already exists
     CSV.open("data/#{filename}", "w") do |csv|
       csv << header_row
       @queue.each do |person|
-        csv << [person[:first_name], person[:last_name], person[:email_address], person[:zipcode], person[:city], person[:state], person[:street], person[:homephone]]
+        csv << [person[:last_name], person[:first_name], person[:email_address], person[:zipcode], person[:city], person[:state], person[:street], person[:homephone]]
       end
     end
   end
@@ -200,11 +200,13 @@ class Prompt
     queue_print
   end
 
-  def queue_print
-    @queue.empty? ? puts("Your queue empty, there are no results to print") : print_queue
-  end
+  # def queue_print
+  #   @queue.empty? ? error_message("queue empty") : print_queue
+  #   # error_message("queue empty") if @queue.empty?
+  #   # print_queue
+  # end
 
-  def print_queue
+  def queue_print
     field_widths = get_column_widths(FIELDS)
     print_results_header(field_widths)
     count = 0
@@ -275,6 +277,18 @@ class Prompt
     print "Command".ljust(40) 
     print "Description".ljust(20) + "\n"
     border_line
+  end
+
+  def error_message(e)
+    case e
+    when "queue empty" then puts "Command cannot be completed because the queue is empty"
+    when "no data" then puts "No Event Attendee information was found, please make sure you loaded a file using the LOAD command"
+    when "no args" then puts "The command you are using is requires additional options, type HELP for more details"
+    when "no file" then puts "The file you are attempting to Load does not exist"
+    when "no overwrite" then puts "You are not authorized to overwrite this file"
+    else
+      puts "The Command entered could not be found, please check your input again"
+    end
   end
 
 end
