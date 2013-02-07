@@ -1,6 +1,3 @@
-require_relative 'event_attendee'
-# require 'csv'
-
 class Prompt
   COMMANDS = {"load <filename>" => "Erase any loaded data and parse the specified file. If no filename is given, default to event_attendees.csv", 
                  "help" => "Output a dataing of the available individual commands",
@@ -44,66 +41,74 @@ class Prompt
   private 
 
   def process_command(command, options)
-
     if command == 'load'
-      if options[0].to_s == ""
-        load_file("event_attendees.csv")
-        puts "no filename was specified so the event_attendees.csv file was loaded by default"
-      else
-        filename = options[0..-1].join
-        File.exists?("data/#{filename}") ? load_file(filename) : error_message("no file")
-      end
-
+      process_load(options)
     elsif command == 'help'
       args = options[0..-1]
-      if args.empty?
-        #puts "call help method without arg"
-        help
-      else
-        #puts "call help method with arg"
-        args.join(" ")
-        help(args)
-      end
-
+      process_help(options)
     elsif command == 'find'
-      args = options[0..-1]
-      if args.empty?
-        error_message("no args")
-      elsif (attribute_exist?(options[0]) == false) && options[1].to_s != ""
-        error_message("no attribute")
-      elsif options[1].to_s == ""
-        error_message("no criteria")
-      else
-        args = options[0..-1].join(" ") #pass args as a string
-        find(args)
-      end
-
+      process_find(options)
     elsif command == 'queue'
       args = options[0..-1]
-      if args.empty?
-        error_message("no args")
-      elsif args[0] == "count"
-        queue_count
-      elsif args[0] == "clear"
-        queue_clear
-      elsif args[0] == "print" && args[1] != "by"
-        @queue.empty? ? error_message("queue empty") : queue_print
-      elsif args[0] == "print" && args[1] == "by"
-        @queue.empty? ? error_message("queue empty") : sort_queue(args[2])
-      elsif args[0] == "save" && args[1] == "to"
-        args[2].downcase == "event_attendees.csv" ? error_message("no overwrite") : queue_save(args[2])
-      else
-        error_message("")
-      end
+      process_queue(args)
     elsif command == "quit"
       puts "Quiting the program"
-    elsif command == "add"
-      # call 
-    elsif command == "subtract"
-      # call subtract method
     else
-      #puts "Sorry that command is not supported"
       error_message("no command")
+    end
+  end
+
+  def process_load(options)
+    if options[0].to_s == ""
+      load_file("event_attendees.csv")
+    else
+      filename = options[0..-1].join
+      if File.exists?("data/#{filename}")
+        load_file(filename)
+      else
+        error_message("no file")
+      end
+    end
+  end
+
+  def process_help(args)
+    if args.empty?
+      help
+    else
+      args.join(" ")
+      help(args)
+    end
+  end
+
+  def process_find(options)
+    args = options[0..-1]
+    if args.empty?
+      error_message("no args")
+    elsif (attribute_exist?(options[0]) == false) && options[1].to_s != ""
+      error_message("no attribute")
+    elsif options[1].to_s == ""
+      error_message("no criteria")
+    else
+      args = options[0..-1].join(" ")
+      find(args)
+    end
+  end
+
+  def process_queue(args)
+    if args.empty?
+      error_message("no args")
+    elsif args[0] == "count"
+      queue_count
+    elsif args[0] == "clear"
+      queue_clear
+    elsif args[0] == "print" && args[1] != "by"
+      @queue.empty? ? error_message("queue empty") : queue_print
+    elsif args[0] == "print" && args[1] == "by"
+      @queue.empty? ? error_message("queue empty") : sort_queue(args[2])
+    elsif args[0] == "save" && args[1] == "to"
+      args[2].downcase == "event_attendees.csv" ? error_message("no overwrite") : queue_save(args[2])
+    else
+      error_message("")
     end
   end
 
@@ -114,10 +119,8 @@ class Prompt
   end
 
   def find(*args)
-    #error_message("no data") if @data.empty?
     @queue = []
     options = args.join(" ").split
-    # logic that evaluates the array and searches for the "and" string
     if options.include?("and")
       multi = true
       and_cursor = options.index("and")
@@ -128,10 +131,8 @@ class Prompt
       attribute2 = second_args[0]
       criteria1 = first_args[1..-1].join(" ")
       criteria2 = second_args[1..-1].join(" ")
-      # now send data to the search method
       search(multi,attribute1, criteria1, attribute2, criteria2)
     else
-      # run multiple regular search
       multi = false
       attribute1 = options[0]
       criteria1 = options[1..-1].join(" ")
@@ -140,29 +141,20 @@ class Prompt
   end
 
   def search(multi, *args)
-
-    #puts "in search method"
-    #puts args.inspect
     if multi
-      # true 
-      attribute1 = args[0]
-      criteria1 = args[1]
-      attribute2 = args[2]
-      criteria2 = args[3]
-
-      puts "conducting first search"
-      @queue = @data.select {|person| person[attribute1.to_sym].downcase == criteria1.downcase }
-
-      puts "conducting second search on the existing queue results set"
-      @queue = @queue.select {|person| person[attribute2.to_sym].downcase == criteria2.downcase }
+      @queue = @data.select {|person| person[args[0].to_sym].downcase == args[1].downcase }
+      @queue = @queue.select {|person| person[args[2].to_sym].downcase == args[3].downcase }
       puts "#{@queue.size} records found"
-
     else
-      attribute = args[0]
-      criteria = args[1]
-      @queue = @data.select {|person| person[attribute].downcase == criteria.downcase }
+      @queue = @data.select {|person| person[args[0]].downcase == args[1].downcase }
       puts "#{@queue.size} records found"
     end
+  end
+
+  def multi_search()
+  end
+
+  def normal_search()
   end
 
   def help(*option)
@@ -190,9 +182,9 @@ class Prompt
   end
 
   def queue_save(filename)
-    header_row = ["Last_name", "First_name", "Email_address", "Zipcode", "Street", "City", "State", "Homephone"]
+    header_row = ["Last_name", "First_name", "Email_address", "Zipcode", "City", "State", "Street", "Homephone"]
     puts "in write_to_csv to method"
-    Dir.mkdir("data") unless Dir.exists?("data") #create output dir unless it already exists
+    Dir.mkdir("data") unless Dir.exists?("data") 
     CSV.open("data/#{filename}", "w") do |csv|
       csv << header_row
       @queue.each do |person|
@@ -208,12 +200,6 @@ class Prompt
     end
     queue_print
   end
-
-  # def queue_print
-  #   @queue.empty? ? error_message("queue empty") : print_queue
-  #   # error_message("queue empty") if @queue.empty?
-  #   # print_queue
-  # end
 
   def queue_print
     field_widths = get_column_widths(FIELDS)
@@ -236,7 +222,7 @@ class Prompt
     end
   end
 
-  def print_commands(commands_hash) # store this in a hash
+  def print_commands(commands_hash)
     header
     commands_hash.each do |command, desc| 
       print command.ljust(40) + desc.ljust(15) + "\n"
@@ -245,7 +231,6 @@ class Prompt
   end
 
   def print_results_header(field_widths)
-    #puts field_widths.inspect
     puts ""
     border_line
     print "LAST NAME".ljust(field_widths["last_name"] + GUTTER) + "FIRST NAME".ljust(field_widths["first_name"] + GUTTER) + "EMAIL".ljust(field_widths["email_address"] + GUTTER) + 
@@ -259,7 +244,11 @@ class Prompt
     fields.each do |name, width|
       header_width = get_header_width(name.downcase)
       col_width = get_widest_field_value(name.downcase)
-      fields_widths_hash[name.downcase] = col_width > header_width ? col_width : header_width
+      if col_width > header_width
+        fields_widths_hash[name.downcase] = col_width
+      else
+        fields_widths_hash[name.downcase] = header_width
+      end
     end
     fields_widths_hash
   end
@@ -300,8 +289,8 @@ class Prompt
     when "no file" then puts "The file you are attempting to Load does not exist"
     when "no overwrite" then puts "You are not authorized to overwrite this file"
     when "no command" then puts "The command you entered does not exist, please type HELP for more details"
-    when "no attribute" then puts "The field that you are attempting to query does not exist, you can only conduct a query on a valid field"
-    when "no criteria" then puts "Your FIND command is missing the required criteria option, type HELP for more details"
+    when "no attribute" then puts "The field that you are attempting to query does not exist the current fields, please search for a valid field"
+    when "no criteria" then puts "Your FIND command is missing the require criteria option, type HELP for more details"
     else
       puts "The Command entered could not be found, please check your input again"
     end
