@@ -1,13 +1,13 @@
 class Zipcode
   attr_accessor :zipcode
   
-  def initialize(zip)
-    @zipcode = zip
-  end
+  # def initialize(zip)
+  #   @zipcode = zip
+  # end
 
 
-  def clean_zipcode #(zipcode)
-    @zipcode.to_s.rjust(5, '0')[0,5]
+  def clean(zipcode)
+    zipcode.to_s.rjust(5, '0')[0,5]
 
   # if zipcode.length == 5
   # 	zipcode

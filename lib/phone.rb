@@ -1,24 +1,14 @@
 class Phone
 
-  ONE = "1"
-
-  def initialize(phone)
-    @phone = phone.gsub(/[^0-9]/,"")
-  end
-
-  def clean_phone_number
-    if @phone.length < 10
-      @phone = "xxxxxxxxxx"
-    elsif @phone.length == 10
-      @phone
-    elsif @phone.length == 11 && @phone[0] == ONE
-       @phone[1..-1]
-    elsif @phone.length == 11 && @phone[0] != ONE
-      @phone = "xxxxxxxxxx"
-    else # all other conditions including phone.length > 11
-      @phone = "xxxxxxxxxx"
+  def clean(phone)
+    puts phone
+    phone = phone.gsub(/[^0-9]/,"")
+    case phone.length
+    when phone.length < 10 then phone = "xxxxxxxxxx"
+    when phone.length == 10 then phone
+    when (phone.length == 11) && (phone[0] == 1) then phone = phone[1..-1]
+    else
+      phone = "xxxxxxxxxx"
     end
-
-    #return @phone
   end
 end

@@ -1,16 +1,27 @@
 class Prompt
-  COMMANDS = {"load <filename>" => "Erase any loaded data and parse the specified file. If no filename is given, default to event_attendees.csv", 
-                 "help" => "Output a dataing of the available individual commands",
-                 "help <command>" => "Output a description of how to use the specific command",
-                 "queue count" => "Output how many records are in the current queue",
-                 "queue clear" => "Empty the queue",
-                 "queue print" => "Print out a tab-delimited data table with a header row",
-                 "queue print by <attribute>" => "Print the data table sorted by the specified attribute like zipcode",
-                 "queue save to <filename.csv>" => "Export the current queue to the specified filename as a CSV",
-                 "find <attribute> <criteria>" => "Load the queue with all records matching the criteria for the given attribute",
-                 "quit" => "Quit the EventReporter program"}
 
-  FIELDS = {"First_name" => 10 , "Last_name" => 9, "Email_address" => 13, "Homephone" => 9, "Street" => 6, "City" => 4, "State" => 5, "Zipcode" => 10}
+  # Add to yaml
+  # COMMANDS = {"load <filename>" => "Erase any loaded data and parse the specified file. If no filename is given, default to event_attendees.csv",
+  #                "help" => "Output a dataing of the available individual commands",
+  #                "help <command>" => "Output a description of how to use the specific command",
+  #                "queue count" => "Output how many records are in the current queue",
+  #                "queue clear" => "Empty the queue",
+  #                "queue print" => "Print out a tab-delimited data table with a header row",
+  #                "queue print by <attribute>" => "Print the data table sorted by the specified attribute like zipcode",
+  #                "queue save to <filename.csv>" => "Export the current queue to the specified filename as a CSV",
+  #                "find <attribute> <criteria>" => "Load the queue with all records matching the criteria for the given attribute",
+  #                "quit" => "Quit the EventReporter program"}
+
+  # Format and align
+  FIELDS = {
+            "First_name" => 10,
+            "Last_name" => 9,
+            "Email_address" => 13,
+            "Homephone" => 9,
+            "Street" => 6,
+            "City" => 4,
+            "State" => 5,
+            "Zipcode" => 10}
 
   GUTTER = 2
 
@@ -20,25 +31,54 @@ class Prompt
     @queue = []
   end
 
-  def run
-    puts @greeting
-    command = ""
-    while command != "quit"
-      printf "Enter command:"
+  # method name is too generic 
+  # def run
+  #   puts @greeting
 
-      input = gets.chomp
-      input = input.downcase
+  #   command = ""
+  #   while command != "quit"
+  #     printf "Enter command:"
 
-      parts = input.split(" ")
+  #     input = gets.chomp.downcase
+  #     #command, options = input.split(" ")....
 
-      command = parts[0]
-      options = parts[1..-1]
+  #     parts = input.split(" ")
 
-      process_command(command, options)
-    end
-  end
+  #     command = parts[0]
+  #     options = parts[1..-1]
+
+  #     process_command(command, options)
+  #   end
+  # end
 
   private 
+
+  # use case statement instead of elsif
+  # respond_to?(method)
+  # send("process_#{command}", options)
+  # o.foo(args)
+  # o.send(:foo, args)
+  # o.send("foo", args)
+
+  # def process_command(command, options)
+  ## method = "process_#{command}"
+  ## if respond_to?(method)
+  #     send(method, options)
+  #    else
+  #    error_message("no command")
+  #    end
+  # end
+
+  # or
+
+  # def process_command(command, options)
+  #   method = "process_#{command}"
+  #   begin
+  #     send(method, options)
+  #   rescue NoMethodError
+  #     error_message("no command")
+  #   end
+  # end
 
   def process_command(command, options)
     if command == 'load'
@@ -56,6 +96,23 @@ class Prompt
     else
       error_message("no command")
     end
+  end
+
+  # def process_load(options)
+  #   filename = options.join
+  #   if options[0].to_s == ""
+  #     filename = "event_attendees.csv"
+  #   end
+
+  #   if File.exists?("data/#{filename}")
+  #     load_file(filename)
+  #   else
+  #     error_message("no file")
+  #   end
+
+    # fix the options
+    # check if the file exists
+    # if, load it
   end
 
   def process_load(options)
@@ -151,26 +208,13 @@ class Prompt
     end
   end
 
-  def multi_search()
-  end
+  # def multi_search()
+  # end
 
-  def normal_search()
-  end
+  # def normal_search()
+  # end
 
-  def help(*option)
-    if option.empty?
-      print_commands(COMMANDS)
-    else
-      command = option[0..-1].join(" ")
-      if COMMANDS.include?(command)
-        new_hash = Hash.new
-        new_hash[command] = COMMANDS[command]
-        print_commands(new_hash)
-      else
-        puts "In help method: Sorry that command is not supported"
-      end
-    end
-  end
+
 
   def queue_count
     puts "There are #{@queue.size} records currently in the queue"
@@ -222,13 +266,7 @@ class Prompt
     end
   end
 
-  def print_commands(commands_hash)
-    header
-    commands_hash.each do |command, desc| 
-      print command.ljust(40) + desc.ljust(15) + "\n"
-    end
-    border_line
-  end
+
 
   def print_results_header(field_widths)
     puts ""
@@ -265,17 +303,7 @@ class Prompt
     FIELDS[field.capitalize]
   end
 
-  def border_line
-    puts "-"*180
-  end
 
-  def header
-    puts ""
-    border_line
-    print "Command".ljust(40) 
-    print "Description".ljust(20) + "\n"
-    border_line
-  end
 
   def attribute_exist?(attribute)
     FIELDS.has_key?(attribute.capitalize)

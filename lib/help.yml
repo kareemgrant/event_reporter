@@ -1,0 +1,8 @@
+"load" :        "load <filename>:                             Erase any loaded data and parse the specified file. If no filename is given, default to event_attendees.csv"
+"help" :        "help <command>:                              Description of how to use the specific command, if no command is specified a list of all commands will be displayed"
+"queue count" : "queue count:                                 Output how many records are in the current queue"
+"queue clear" : "queue clear:                                 Empty the queue"
+"queue print" : "queue print or queue print by <attribute>:   Print out a tab-delimited data table. User can also sort data by a specific field, for example: \"queue print by first_name\""
+"queue save"  : "queue save to <filename.csv>:                Export the current queue to the specified filename as a CSV"
+"find" :        "find <attribute> <criteria>:                 Load the queue with all records matching the criteria for the given attribute"
+"quit" :        "quit:                                        Quit the EventReporter program"

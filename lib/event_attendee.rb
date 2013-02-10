@@ -6,7 +6,7 @@ class EventAttendee
   end
 
   def get_attendees
-    contents = CSV.open "data/#{@filename}", headers: true, header_converters: :symbol    
+    contents = CSV.open "data/#{@filename}", headers: true, header_converters: :symbol
 
     contents.each_with_object([]) do |person, data|
       last_name = person[:last_name].to_s

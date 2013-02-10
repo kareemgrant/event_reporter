@@ -3,3 +3,10 @@
 ### gSchool assignment
 
 More details to come. 
+
+Code Review comments
+
+## Chanage file to .md 
+## Add global .gitignore --> "google global ignore"
+## Add lib to -->  $:.unshift("lib"), add to top of initializer file --this will add paths so you can use require 'phone' instead of require './lib/phone'
+
