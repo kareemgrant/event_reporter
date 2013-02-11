@@ -1,6 +1,7 @@
 ## ToDo
 ### 1) Add exception handling, experiment with throw/catch and begin/rescue
 ###    blocks
+### 2) Implement Advanced search
 
 require 'csv'
 require './lib/phone'
